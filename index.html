@@ -8,73 +8,109 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;color:#222;background:#fff}
-header{background:#111;color:#fff;text-align:center;padding:16px}
+
+header{
+background:#111;color:white;text-align:center;padding:16px
+}
 header h1{margin:0;font-size:26px}
 header p{color:#ddd;margin:6px 0 0}
-.hero{text-align:center;padding:30px 15px;background:#f5f5f5}
-.hero h2{margin:0 0 8px;font-size:27px}
-.hero p{color:#666}
-.product{max-width:520px;margin:22px auto;padding:18px}
 
-.gallery{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
+.product{max-width:520px;margin:auto;padding:16px}
+
+.main-image{
+width:100%;
+height:430px;
+background:#f5f5f5;
+border-radius:12px;
+overflow:hidden;
+position:relative;
+touch-action:pan-y;
 }
 
-.photo-box{
-height:270px;
-background:#eee;
-border-radius:12px;
+.main-image img{
+width:100%;
+height:100%;
+object-fit:contain;
+}
+
+.arrow{
+position:absolute;
+top:50%;
+transform:translateY(-50%);
+width:40px;
+height:40px;
+border:0;
+border-radius:50%;
+background:rgba(255,255,255,.9);
+font-size:26px;
+}
+
+.left{left:8px}
+.right{right:8px}
+
+.thumbnails{
+display:flex;
+gap:10px;
+overflow-x:auto;
+margin-top:12px;
+}
+
+.thumb{
+min-width:78px;
+height:78px;
+border:2px solid #ddd;
+border-radius:8px;
 overflow:hidden;
 }
 
-.photo-box img{
+.thumb.active{border-color:#111}
+
+.thumb img{
 width:100%;
 height:100%;
 object-fit:cover;
 }
 
-h3{font-size:23px;margin-bottom:8px}
-.price{font-size:27px;font-weight:bold}
-.old{
-font-size:17px;
+.price{font-size:28px;font-weight:bold}
+
+.old-price{
+margin-left:8px;
 color:#888;
 text-decoration:line-through;
-margin-left:8px
 }
+
 .offer{color:green;font-weight:bold}
 
 .upload{
 margin-top:20px;
 padding:16px;
 border:2px dashed #bbb;
-border-radius:10px
+border-radius:10px;
 }
 
-.upload input{margin-top:10px;width:100%}
+.upload input{width:100%;margin-top:10px}
 
 .buttons{
 display:flex;
 gap:10px;
-margin-top:20px
+margin-top:20px;
 }
 
-button{
+.buttons button{
 flex:1;
 padding:15px;
 border-radius:7px;
 font-size:17px;
-font-weight:bold
+font-weight:bold;
 }
 
-.cart{background:#fff;border:2px solid #111}
-.buy{background:#111;color:#fff;border:2px solid #111}
+.cart{background:white;border:2px solid #111}
+.buy{background:#111;color:white;border:2px solid #111}
 
 .details{
 margin-top:25px;
 border-top:1px solid #ddd;
-padding-top:18px
+padding-top:18px;
 }
 
 .details li{margin:10px 0}
@@ -82,9 +118,9 @@ padding-top:18px
 footer{
 margin-top:30px;
 background:#111;
-color:#fff;
+color:white;
 text-align:center;
-padding:25px 10px
+padding:25px 10px;
 }
 </style>
 </head>
@@ -96,38 +132,44 @@ padding:25px 10px
 <p>Turn Your Memories Into Beautiful Frames</p>
 </header>
 
-<section class="hero">
-<h2>Customized Photo Frames</h2>
-<p>Upload your photos and create a frame made especially for you.</p>
-</section>
-
 <section class="product">
 
-<div class="gallery" id="previewBox">
+<div class="main-image" id="swipeArea">
 
-<div class="photo-box">
-<img src="2ea680e2-6f57-401b-bf86-6553823d1161.png" alt="Photo Frame">
+<img id="mainPhoto"
+src="2ea680e2-6f57-401b-bf86-6553823d1161.png"
+alt="Photo Frame">
+
+<button class="arrow left" onclick="previousPhoto()">‹</button>
+<button class="arrow right" onclick="nextPhoto()">›</button>
+
 </div>
 
-<div class="photo-box">
-<img src="3c42607d-0e30-4186-904a-2fdfd151f32a.png" alt="Photo Frame">
+<div class="thumbnails">
+
+<div class="thumb active" onclick="showPhoto(0)">
+<img src="2ea680e2-6f57-401b-bf86-6553823d1161.png">
+</div>
+
+<div class="thumb" onclick="showPhoto(1)">
+<img src="3c42607d-0e30-4186-904a-2fdfd151f32a.png">
 </div>
 
 </div>
 
-<h3>12×18 Wedding Photo Frame</h3>
+<h2>12×18 Wedding Photo Frame</h2>
 
-<div>
+<p>
 <span class="price">₹599</span>
-<span class="old">₹999</span>
-</div>
+<span class="old-price">₹999</span>
+</p>
 
 <p class="offer">Special Offer • Free Delivery</p>
 
 <div class="upload">
 <b>Upload Your Photos</b>
 <p>आप अधिकतम 5 photos select कर सकते हैं</p>
-<input type="file" id="photos" accept="image/*" multiple>
+<input type="file" id="customerPhotos" accept="image/*" multiple>
 </div>
 
 <div class="buttons">
@@ -136,11 +178,12 @@ padding:25px 10px
 </div>
 
 <div class="details">
-<h3>Product Details</h3>
+<h2>Product Details</h2>
+
 <ul>
 <li>Size: 12×18 Inches</li>
 <li>Customized with your own photos</li>
-<li>Premium photo-frame finish</li>
+<li>Premium Photo Frame Finish</li>
 <li>Wall Hanging Hooks</li>
 <li>Perfect for Wedding, Anniversary & Gifts</li>
 <li>Delivery Available Across India</li>
@@ -155,26 +198,59 @@ padding:25px 10px
 </footer>
 
 <script>
-const photos=document.getElementById("photos");
+const photos=[
+"2ea680e2-6f57-401b-bf86-6553823d1161.png",
+"3c42607d-0e30-4186-904a-2fdfd151f32a.png"
+];
 
-photos.addEventListener("change",function(){
+let currentPhoto=0;
+
+function showPhoto(index){
+currentPhoto=index;
+document.getElementById("mainPhoto").src=photos[index];
+
+document.querySelectorAll(".thumb").forEach((thumb,i)=>{
+thumb.classList.toggle("active",i===index);
+});
+}
+
+function nextPhoto(){
+currentPhoto++;
+if(currentPhoto>=photos.length) currentPhoto=0;
+showPhoto(currentPhoto);
+}
+
+function previousPhoto(){
+currentPhoto--;
+if(currentPhoto<0) currentPhoto=photos.length-1;
+showPhoto(currentPhoto);
+}
+
+/* MOBILE SWIPE */
+let startX=0;
+const swipeArea=document.getElementById("swipeArea");
+
+swipeArea.addEventListener("touchstart",function(e){
+startX=e.touches[0].clientX;
+});
+
+swipeArea.addEventListener("touchend",function(e){
+let endX=e.changedTouches[0].clientX;
+let difference=startX-endX;
+
+if(difference>50) nextPhoto();
+if(difference<-50) previousPhoto();
+});
+
+/* MAXIMUM 5 PHOTOS */
+document.getElementById("customerPhotos")
+.addEventListener("change",function(){
 
 if(this.files.length>5){
 alert("Maximum 5 photos upload कर सकते हैं.");
 this.value="";
-return;
 }
 
-if(this.files[0]){
-const reader=new FileReader();
-
-reader.onload=function(e){
-document.getElementById("previewBox").innerHTML=
-'<div class="photo-box" style="grid-column:1/-1"><img src="'+e.target.result+'" alt="Customer Photo"></div>';
-};
-
-reader.readAsDataURL(this.files[0]);
-}
 });
 
 function addCart(){
