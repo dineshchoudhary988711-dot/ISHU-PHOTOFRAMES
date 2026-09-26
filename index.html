@@ -21,14 +21,14 @@ footer{background:#111;color:#fff;text-align:center;padding:25px;margin-top:25px
 <footer><b>ISHU PHOTO FRAMES</b><p>Delivery Available Across India</p></footer>
 <script>
 const products=[
-{title:'Personalized Calendar Photo Frame',size:'8×12 Inch',price:'₹399',img:'IMG-20260926-WA0000.jpg'},
-{title:'Single Photo Frame',size:'12×18 Inch',price:'₹599',img:'IMG-20260926-WA0001.jpg'},
-{title:'7 Horse Wall Clock',size:'12×18 Inch',price:'₹699',img:'IMG-20260926-WA0002.jpg'},
-{title:'Premium Wall Clock',size:'12×12 Inch',price:'₹499',img:'IMG-20260926-WA0003.jpg'},
-{title:'Personalized Milestone Photo Frame',size:'24×36 Inch',price:'₹1,999',img:'IMG-20260926-WA0004.jpg'},
-{title:'Wedding / Anniversary Photo Frame',size:'18×24 Inch',price:'₹1,099',img:'IMG-20260926-WA0005.jpg'},
-{title:'Family Photo Frame',size:'12×18 Inch',price:'₹599',img:'IMG-20260926-WA0006.jpg'},
-{title:'Collage Photo Frame',size:'12×18 Inch',price:'₹599',img:'IMG-20260926-WA0007.jpg'}
+{title:'Personalized Calendar Photo Frame',size:'8×12 Inch',price:'₹399',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0000.jpg'},
+{title:'Single Photo Frame',size:'12×18 Inch',price:'₹599',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0001.jpg'},
+{title:'7 Horse Wall Clock',size:'12×18 Inch',price:'₹699',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0002.jpg'},
+{title:'Premium Wall Clock',size:'12×12 Inch',price:'₹499',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0003.jpg'},
+{title:'Personalized Milestone Photo Frame',size:'24×36 Inch',price:'₹1,999',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0004.jpg'},
+{title:'Wedding / Anniversary Photo Frame',size:'18×24 Inch',price:'₹1,099',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0005.jpg'},
+{title:'Family Photo Frame',size:'12×18 Inch',price:'₹599',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0006.jpg'},
+{title:'Collage Photo Frame',size:'12×18 Inch',price:'₹599',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0007.jpg'}
 ];
 const grid=document.getElementById('products');
 products.forEach((p,i)=>{grid.innerHTML+=`<div class="card"><div class="pic"><img src="${p.img}" alt="${p.title}"></div><div class="info"><h2>${p.title}</h2><div class="price">${p.price}</div><div class="size">Size: ${p.size}</div><button class="btn" onclick="openViewer(${i})">View Product</button></div></div>`});
