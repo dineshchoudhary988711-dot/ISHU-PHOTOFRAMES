@@ -82,6 +82,7 @@ input,textarea,select,button{font-size:16px}
 .editAddr{color:#5a2d16!important}.deliverHere{color:#275c2c!important}.redCross{width:23px!important;height:23px!important;font-size:17px!important}
 @media(max-width:600px){.addressBox{width:92vw!important;padding:12px!important}.addressBox input,.addressBox textarea{padding:7px 9px!important}.addressBox textarea{height:52px!important}}
 </style>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body><div class="topbar"><div> <span>|</span> <span class="waText">🟢 WhatsApp Us</span> <span>|</span> 🚚 All India Delivery</div><div class="topActions"><button onclick="openTrack()">🚚 Track Order</button><button onclick="openCart()">🛒 Cart <b id="cartCount">0</b></button></div></div><header>
 <div class="headerMain"><img class="brandLogo" src="ishu-logo.svg" alt="Ishu Photo Frames Logo"><div class="search"><input id="searchInput" placeholder="Search for Photo Frames, Collage, Size..." oninput="doSearch(false)"><button onclick="doSearch()">Search</button></div><div class="features"><div><span class="featureIcon">🚚</span>All India<br>Delivery</div><div><span class="featureIcon">🛡️</span>Safe<br>Packaging</div><div><span class="featureIcon">🏅</span>Premium<br>Quality</div><div><span class="featureIcon">🎧</span>24×7<br>Support</div></div></div>
@@ -142,7 +143,28 @@ function openViewer(i){let p=products[i];document.getElementById('vimg').src=p.i
 function closeViewer(){document.getElementById('viewer').style.display='none'}document.getElementById('customerPhotos').addEventListener('change',function(){if(this.files.length>5){alert('Maximum 5 photos upload कर सकते हैं.');this.value=''}})
 function addCart(){let i=products.findIndex(x=>x.title===document.getElementById('vtitle').textContent);if(i>=0)addToCart(i)}
 function getAdvance(total){if(total===399)return 200;if(total===599)return 249;if(total===699)return 349;if(total===1099)return 550;if(total===1999)return 1999;if(total===499)return 249;return total}
-function payNow(){const p=products.find(x=>x.title===document.getElementById('vtitle').textContent);if(!p)return;const total=parseInt(p.price.replace(/[^0-9]/g,''));const amount=getAdvance(total);const upi='upi://pay?pa='+encodeURIComponent('gpay-12207537111@okbizaxis')+'&pn='+encodeURIComponent('ISHU PHOTO FRAMES')+'&am='+amount.toFixed(2)+'&cu=INR&tn='+encodeURIComponent('Advance payment - '+p.title);window.location.href=upi;setTimeout(()=>alert('Payment करने के बाद WhatsApp पर payment screenshot / UTR भेजकर order confirm करें।'),1200)}
+async function payNow(){
+ const p=products.find(x=>x.title===document.getElementById('vtitle').textContent);if(!p)return;
+ const name=document.getElementById('customerName').value.trim();
+ const phone=document.getElementById('customerPhone').value.replace(/\D/g,'');
+ const address=document.getElementById('customerAddress').value.trim();
+ const pincode=document.getElementById('customerPincode').value.replace(/\D/g,'');
+ if(!name||phone.length<10||!address||pincode.length!==6){alert('Payment से पहले Name, Mobile Number, Full Address और 6 digit Pincode भरें।');return}
+ const total=parseInt(p.price.replace(/[^0-9]/g,'')),amount=getAdvance(total);
+ try{
+  const cr=await fetch('/api/create-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount,product:p.title})});
+  const order=await cr.json();if(!cr.ok)throw new Error(order.error||'Order create failed');
+  const options={key:order.key_id,amount:order.amount,currency:'INR',name:'ISHU PHOTO FRAMES',description:'Advance - '+p.title,order_id:order.id,prefill:{name,contact:phone},
+   handler:async function(resp){
+    const vr=await fetch('/api/verify-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(resp)});
+    const verified=await vr.json();if(!vr.ok||!verified.verified){alert('Payment verification failed. कृपया WhatsApp पर contact करें।');return}
+    const msg='ISHU PHOTO FRAMES PAID ORDER\\n\\nProduct: '+p.title+'\\nSize: '+p.size+'\\nTotal Price: '+p.price+'\\nAdvance Paid: ₹'+amount+'\\nRemaining COD: ₹'+(total-amount)+'\\nPayment ID: '+resp.razorpay_payment_id+'\\nName: '+name+'\\nMobile: '+phone+'\\nAddress: '+address+'\\nPincode: '+pincode+'\\n\\nPayment verified successfully. Customer photos WhatsApp पर attach करें।';
+    alert('Payment successful और verified ✅ अब WhatsApp पर order details भेजें।');
+    window.open('https://wa.me/919468502183?text='+encodeURIComponent(msg),'_blank');
+   },theme:{color:'#d7192f'}};
+  new Razorpay(options).open();
+ }catch(e){alert('Payment शुरू नहीं हो पाया: '+e.message)}
+}
 let editingAddressIndex=-1;
 function getAddresses(){let a=JSON.parse(localStorage.getItem('ishuAddresses')||'[]');if(!a.length){let old=JSON.parse(localStorage.getItem('ishuAddress')||'null');if(old){a=[old];localStorage.setItem('ishuAddresses',JSON.stringify(a))}}return a}
 function clearAddressForm(){editingAddressIndex=-1;['addrName','addrPhone','addrFull','addrCity','addrState','addrPin'].forEach(id=>document.getElementById(id).value='');document.getElementById('addrMsg').innerHTML=''}
