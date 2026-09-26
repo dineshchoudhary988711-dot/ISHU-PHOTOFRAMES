@@ -17,7 +17,7 @@ footer{background:#111;color:#fff;text-align:center;padding:25px;margin-top:25px
 <body>
 <header><h1>ISHU PHOTO FRAMES</h1><p>Customized Frames • Made With Your Memories ❤️</p></header>
 <div class="wrap"><h2 class="title">Our Products</h2><div class="grid" id="products"></div></div>
-<div id="viewer"><div class="viewerbox"><button class="close" onclick="closeViewer()">×</button><div class="big"><img id="vimg"></div><div class="vinfo"><h2 id="vtitle"></h2><div class="price" id="vprice"></div><div id="vsize" class="size"></div><div class="upload"><b>Upload Your Photos</b><p>अधिकतम 5 photos select करें</p><input id="customerPhotos" type="file" accept="image/*" multiple></div><button class="btn cart" onclick="addCart()">Add to Cart</button><button class="btn buy" onclick="buyNow()">Buy Now</button></div></div></div>
+<div id="viewer"><div class="viewerbox"><button class="close" onclick="closeViewer()">×</button><div class="big"><img id="vimg"></div><div class="vinfo"><h2 id="vtitle"></h2><div class="price" id="vprice"></div><div id="vsize" class="size"></div><div class="upload"><b>Customer Details</b><input id="customerName" placeholder="Your Name" style="width:100%;padding:10px;margin-top:8px"><input id="customerPhone" placeholder="Mobile Number" type="tel" style="width:100%;padding:10px;margin-top:8px"><textarea id="customerAddress" placeholder="Full Delivery Address" style="width:100%;padding:10px;margin-top:8px;height:80px"></textarea><input id="customerPincode" placeholder="Pincode" maxlength="6" style="width:100%;padding:10px;margin-top:8px"><b style="display:block;margin-top:12px">Upload Your Photos</b><p>अधिकतम 5 photos select करें</p><input id="customerPhotos" type="file" accept="image/*" multiple><p style="font-size:12px;color:#666">Photos WhatsApp order message में automatically attach नहीं हो सकतीं; WhatsApp खुलने के बाद इन्हें chat में attach कर दें।</p></div><button class="btn cart" onclick="addCart()">Add to Cart</button><button class="btn buy" onclick="buyNow()">Order on WhatsApp</button></div></div></div>
 <footer><b>ISHU PHOTO FRAMES</b><p>Delivery Available Across India</p></footer>
 <script>
 const products=[
@@ -36,7 +36,18 @@ function openViewer(i){let p=products[i];document.getElementById('vimg').src=p.i
 function closeViewer(){document.getElementById('viewer').style.display='none'}
 document.getElementById('customerPhotos').addEventListener('change',function(){if(this.files.length>5){alert('Maximum 5 photos upload कर सकते हैं.');this.value=''}})
 function addCart(){alert('Product added to cart!')}
-function buyNow(){alert('Order page जल्द connect किया जाएगा.')}
+function buyNow(){
+const p=products.find(x=>x.title===document.getElementById('vtitle').textContent);
+const name=document.getElementById('customerName').value.trim();
+const phone=document.getElementById('customerPhone').value.trim();
+const address=document.getElementById('customerAddress').value.trim();
+const pincode=document.getElementById('customerPincode').value.trim();
+if(!name||!phone||!address||!pincode){alert('Please Name, Mobile Number, Full Address और Pincode भरें।');return}
+const msg='ISHU PHOTO FRAMES ORDER%0A%0AProduct: '+encodeURIComponent(p.title)+'%0ASize: '+encodeURIComponent(p.size)+'%0APrice: '+encodeURIComponent(p.price)+'%0AName: '+encodeURIComponent(name)+'%0AMobile: '+encodeURIComponent(phone)+'%0AAddress: '+encodeURIComponent(address)+'%0APincode: '+encodeURIComponent(pincode)+'%0A%0Aमैंने अपनी photos upload की हैं। WhatsApp पर photos attach कर रहा/रही हूँ।';
+const choice=confirm('Order भेजने के लिए OK दबाएँ। पहले WhatsApp नंबर पर भेजें?\nCancel दबाने पर दूसरे WhatsApp नंबर पर भेजा जाएगा।');
+const number=choice?'919468502183':'918875618426';
+window.open('https://wa.me/'+number+'?text='+msg,'_blank');
+}
 </script>
 </body>
 </html>
