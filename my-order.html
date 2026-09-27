@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Order | Ishu Photo Frames</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f7eadc;color:#241b17}.head{background:#2d1a10;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}.head a{color:#fff;text-decoration:none;font-weight:700}.wrap{max-width:620px;margin:28px auto;padding:0 14px}.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 5px 20px #0002}.title{margin:0 0 16px;font-size:25px}.status{display:inline-block;background:#e7f7eb;color:#247a35;padding:6px 10px;border-radius:20px;font-weight:700}.row{padding:10px 0;border-bottom:1px solid #eee;line-height:1.5}.row:last-child{border:0}.empty{text-align:center;padding:28px 10px;color:#666}.btn{display:block;width:100%;margin-top:16px;padding:13px;border:0;border-radius:9px;background:#d7192f;color:#fff;text-align:center;text-decoration:none;font-weight:700}.back{background:#2d1a10}.items{margin-top:8px}.item{padding:9px;background:#faf6f1;border-radius:8px;margin-top:7px}.muted{color:#666;font-size:13px}
+</style>
+</head>
+<body>
+<div class="head"><b>ISHU PHOTO FRAMES</b><a href="/">← Home</a></div>
+<div class="wrap"><div class="card"><h1 class="title">📦 My Order</h1><div id="order"></div></div></div>
+<script>
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function money(v){return '₹'+Number(v||0).toLocaleString('en-IN')}
+function render(){
+ const out=document.getElementById('order');let o=null;
+ try{o=JSON.parse(localStorage.getItem('ishuLastPaidOrder')||'null')}catch(e){}
+ if(!o){out.innerHTML='<div class="empty"><b>No order found on this device.</b><p>Successful payment के बाद आपका latest confirmed order यहाँ दिखाई देगा।</p></div><a class="btn back" href="/">Continue Shopping</a>';return}
+ let product='';
+ if(Array.isArray(o.items)&&o.items.length){product='<div class="items">'+o.items.map(x=>'<div class="item"><b>'+esc(x.title||'Photo Frame')+'</b><br><span class="muted">'+esc(x.size||'')+' · Qty '+esc(x.qty||1)+'</span></div>').join('')+'</div>'}
+ else product='<div class="row"><b>Frame</b><br>'+esc(o.product||'Photo Frame')+(o.size?'<br><span class="muted">Size: '+esc(o.size)+'</span>':'')+'</div>';
+ const wa=o.whatsappMessage?'https://wa.me/919468502183?text='+encodeURIComponent(o.whatsappMessage):'https://wa.me/919468502183';
+ out.innerHTML='<span class="status">✓ '+esc(o.status||'Confirmed')+'</span>'+product+'<div class="row"><b>Order ID</b><br>'+esc(o.id||'-')+'</div><div class="row"><b>Payment</b><br>Paid: '+money(o.advance)+'<br>Remaining COD: '+money(o.cod)+'</div><div class="row"><b>Customer</b><br>'+esc(o.name||'')+(o.phone?'<br>'+esc(o.phone):'')+'</div>'+(o.address?'<div class="row"><b>Delivery Address</b><br>'+esc(o.address)+'</div>':'')+'<a class="btn" href="'+wa+'">Open WhatsApp</a><a class="btn back" href="/">Continue Shopping</a>';
+}
+render();
+</script>
+</body>
+</html>
