@@ -234,8 +234,8 @@ function submitReview(){
  document.getElementById('reviewName').value='';document.getElementById('reviewText').value='';renderReviews();alert('Review submitted ✅');
 }
 let selectedPaymentMode='prepaid';
-function showCheckout(){const details=document.getElementById('checkoutDetails');if(details)details.style.display='none';const offer=document.getElementById('prepaidOffer');const p=products[currentProductIndex];const total=parseInt(p.price.replace(/[^0-9]/g,''));const prepaid=Math.max(0,total-100);document.getElementById('prepaidOfferPrice').innerHTML='<span style="text-decoration:line-through;color:#777">₹'+total.toLocaleString('en-IN')+'</span> <b style="font-size:20px;margin-left:6px">₹'+prepaid.toLocaleString('en-IN')+'</b>';const advance=getAdvance(total);const cod=total-advance;document.getElementById('codOfferPrice').innerHTML='₹'+total.toLocaleString('en-IN')+' — Advance Amount ₹'+advance.toLocaleString('en-IN')+'<br>COD Amount ₹'+cod.toLocaleString('en-IN');offer.style.display='block';offer.scrollIntoView({behavior:'smooth',block:'center'})}
-function showAddressForm(mode){selectedPaymentMode=mode||'prepaid';document.getElementById('prepaidOffer').style.display='none';const el=document.getElementById('checkoutDetails');el.style.display='block';el.scrollIntoView({behavior:'smooth',block:'start'})}
+function showCheckout(fromHistory=false){if(!fromHistory)history.pushState({ishuView:'payment'},'',location.href);const details=document.getElementById('checkoutDetails');if(details)details.style.display='none';const offer=document.getElementById('prepaidOffer');const p=products[currentProductIndex];const total=parseInt(p.price.replace(/[^0-9]/g,''));const prepaid=Math.max(0,total-100);document.getElementById('prepaidOfferPrice').innerHTML='<span style="text-decoration:line-through;color:#777">₹'+total.toLocaleString('en-IN')+'</span> <b style="font-size:20px;margin-left:6px">₹'+prepaid.toLocaleString('en-IN')+'</b>';const advance=getAdvance(total);const cod=total-advance;document.getElementById('codOfferPrice').innerHTML='₹'+total.toLocaleString('en-IN')+' — Advance Amount ₹'+advance.toLocaleString('en-IN')+'<br>COD Amount ₹'+cod.toLocaleString('en-IN');offer.style.display='block';offer.scrollIntoView({behavior:'smooth',block:'center'})}
+function showAddressForm(mode,fromHistory=false){if(!fromHistory)history.pushState({ishuView:'address'},'',location.href);selectedPaymentMode=mode||'prepaid';document.getElementById('prepaidOffer').style.display='none';const el=document.getElementById('checkoutDetails');el.style.display='block';el.scrollIntoView({behavior:'smooth',block:'start'})}
 function closeViewer(fromHistory=false){document.getElementById('viewer').style.display='none';if(!fromHistory&&history.state&&history.state.ishuView==='product')history.back()}document.getElementById('customerPhotos').addEventListener('change',function(){const max=parseInt(this.dataset.maxPhotos||'1');if(this.files.length>max){alert('इस frame के लिए maximum '+max+' photo upload कर सकते हैं.');this.value=''}document.getElementById('photoFileName').textContent=this.files.length?(this.files.length===1?this.files[0].name:this.files.length+' photos selected'):'No photo selected'})
 function addCart(){let i=products.findIndex(x=>x.title===document.getElementById('vtitle').textContent);if(i>=0)addToCart(i)}
 function getAdvance(total){if(total===50)return 10;if(total===399)return 200;if(total===599)return 249;if(total===699)return 349;if(total===1099)return 550;if(total===1999)return 1999;if(total===499)return 249;return total}
@@ -304,8 +304,13 @@ if(!history.state||!history.state.ishuHomeGuard){history.replaceState({ishuHomeG
 window.addEventListener('popstate',function(){
  const viewer=document.getElementById('viewer'),cart=document.getElementById('cartPanel'),success=document.getElementById('orderSuccessBox');
  if(success&&success.style.display==='flex'){hidePaidOrderSuccess();return}
- if(viewer&&viewer.style.display==='block'){closeViewer(true);return}
  if(cart&&cart.style.display==='block'){closeCart(true);return}
+ if(viewer&&viewer.style.display==='block'){
+   const details=document.getElementById('checkoutDetails'),offer=document.getElementById('prepaidOffer');
+   if(details&&details.style.display==='block'){details.style.display='none';if(offer)offer.style.display='block';return}
+   if(offer&&offer.style.display==='block'){offer.style.display='none';return}
+   closeViewer(true);return
+ }
  homeBackGuard++;
 });
 restorePaidOrderSuccess();
