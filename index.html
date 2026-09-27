@@ -100,6 +100,8 @@ input,textarea,select,button{font-size:16px}
 }
 </style>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body><div class="topbar"><div> <span>|</span> <span class="waText">🟢 WhatsApp Us</span> <span>|</span> 🚚 All India Delivery</div><div class="topActions"><button onclick="openTrack()">🚚 Track Order</button><button onclick="openCart()">🛒 Cart <b id="cartCount">0</b></button></div></div><header>
 <div class="headerMain"><img class="brandLogoImg" src="./ishu-logo.svg" alt="Ishu Photo Frames Logo"><div class="search"><input id="searchInput" placeholder="Search for Photo Frames, Collage, Size..." oninput="doSearch(false)"><button onclick="doSearch()">Search</button></div><div class="features"><div><span class="featureIcon">🚚</span>All India<br>Delivery</div><div><span class="featureIcon">🛡️</span>Safe<br>Packaging</div><div><span class="featureIcon">🏅</span>Premium<br>Quality</div><div><span class="featureIcon">🎧</span>24×7<br>Support</div></div></div>
@@ -134,6 +136,9 @@ input,textarea,select,button{font-size:16px}
 </div></div></div>
 <footer><b>ISHU PHOTO FRAMES</b><p>Customized Frames • Made With Your Memories ❤️ • Delivery Across India</p></footer>
 <script>
+const firebaseConfig={apiKey:"AIzaSyDC0jnEYErbv6O6Ju7ujxJybPHwapCq5_0",authDomain:"ishu-photo-frames.firebaseapp.com",projectId:"ishu-photo-frames",storageBucket:"ishu-photo-frames.firebasestorage.app",messagingSenderId:"33113817139",appId:"1:33113817139:web:1c9849ec03659d70c0e346",measurementId:"G-478KNGZ168"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
 const products=[
 {title:'Personalized Calendar Photo Frame',size:'8×12 Inch',price:'₹399',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0000.jpg?v=4'},
 {title:'Single Photo Frame',size:'12×18 Inch',price:'₹599',img:'https://raw.githubusercontent.com/dineshchoudhary988711-dot/ISHU-PHOTOFRAMES/main/IMG-20260926-WA0001.jpg?v=4'},
@@ -254,7 +259,9 @@ async function payNow(){
     const paymentId=resp.razorpay_payment_id;
     const orderId=resp.razorpay_order_id;
     const msg='✅ *ISHU PHOTO FRAMES*\\n*PAYMENT SUCCESSFUL* ✅\\n\\n*Order Details*\\nProduct: '+p.title+'\\nSize: '+p.size+'\\nOrder Type: '+(selectedPaymentMode==='prepaid'?'Prepaid Order':'Cash on Delivery')+'\\nOnline Payment: ₹'+amount+'\\nRemaining COD: ₹'+remaining+(getCustomFrameDetails().length?'\\n\\n*Frame Customization*\\n'+getCustomFrameDetails().map(x=>x.label+': '+x.value).join('\\n'):'')+'\\n\\n*Customer Details*\\nName: '+name+'\\nMobile Number: '+phone+'\\n\\n*Delivery Address*\\nAddress: '+address+'\\nCity / District: '+district+'\\nState: '+state+'\\nPincode: '+pincode+'\\n\\n📷 Please send your photo in this WhatsApp chat.';
-    try{localStorage.setItem('ishuLastPaidOrder',JSON.stringify({paymentId,orderId,product:p.title,size:p.size,total,amount,remaining,paymentMode:selectedPaymentMode,name,phone,address,district,state,pincode,paidAt:new Date().toISOString()}))}catch(e){}
+    const paidOrder={id:orderId,paymentId,product:p.title,size:p.size,total,advance:amount,cod:remaining,paymentMode:selectedPaymentMode,name,phone,address:address+', '+district+', '+state+' - '+pincode,district,state,pincode,customization:getCustomFrameDetails(),status:'Confirmed',paidAt:new Date().toISOString(),createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    try{localStorage.setItem('ishuLastPaidOrder',JSON.stringify(paidOrder))}catch(e){}
+    try{await db.collection('orders').doc(orderId).set(paidOrder,{merge:true})}catch(e){console.error('Order database save failed',e)}
     const successBox=document.getElementById('orderSuccessBox');document.getElementById('orderSuccessDetails').innerHTML='<b>Order Status:</b> CONFIRMED ✅<br><b>Payment ID:</b> '+paymentId+'<br><b>Paid:</b> ₹'+amount.toLocaleString('en-IN')+'<br><b>Remaining COD:</b> ₹'+remaining.toLocaleString('en-IN');document.getElementById('successWhatsappBtn').onclick=function(){window.location.href='https://wa.me/919468502183?text='+encodeURIComponent(msg)};successBox.style.display='flex';
    },theme:{color:'#d7192f'}};
   new Razorpay(options).open();
