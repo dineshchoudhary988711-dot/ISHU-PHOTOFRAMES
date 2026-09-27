@@ -12,7 +12,7 @@
 <div id="app" style="display:none">
 <div class="top"><div class="wrap"><button class="btn" style="float:right;background:#fff;color:#111" onclick="logout()">Logout</button><h1>ISHU PHOTO FRAMES — Admin Panel</h1><small>Live Firestore Order Management</small></div></div>
 <div class="wrap">
-<div class="stats"><div class="stat">Total Orders<b id="total">0</b></div><div class="stat">New<b id="new">0</b></div><div class="stat">Advance Collected<b id="advance">₹0</b></div><div class="stat">COD Pending<b id="cod">₹0</b></div></div>
+<div class="stats"><div class="stat">Total Orders<b id="total">0</b></div><div class="stat">New<b id="new">0</b></div><div class="stat">Advance Collected<b id="advance">₹0</b></div><div class="stat">COD Pending<b id="cod">₹0</b></div><div class="stat">Visitors Today<b id="visToday">0</b></div><div class="stat">Last 7 Days<b id="vis7">0</b></div><div class="stat">Last 30 Days<b id="vis30">0</b></div><div class="stat">Total Visits<b id="visTotal">0</b></div></div>
 <div class="toolbar"><input id="search" placeholder="Search name / mobile / order ID" oninput="render()"><select id="filter" onchange="render()"><option value="">All Status</option><option>New</option><option>Confirmed</option><option>Printing</option><option>Shipped</option><option>Delivered</option><option>Cancelled</option><option>Demo</option><button class="btn danger" onclick="clearDemo()">Clear Demo</button></select></div>
 <div id="orders" class="orders"></div>
 </div></div>
@@ -24,11 +24,23 @@ function normalizePhone(v){let d=String(v||'').replace(/\D/g,'');if(d.startsWith
 function setupRecaptcha(){if(recaptchaVerifier)return;recaptchaVerifier=new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'normal'});recaptchaVerifier.render()}
 async function sendOTP(){const err=document.getElementById('err'),phone=normalizePhone(document.getElementById('phone').value);err.textContent='';if(!ADMIN_PHONES.includes(phone)){err.textContent='यह mobile number admin के लिए authorized नहीं है।';return}try{setupRecaptcha();confirmationResult=await auth.signInWithPhoneNumber(phone,recaptchaVerifier);document.getElementById('otpBox').style.display='block';document.getElementById('sendBtn').textContent='Resend OTP';err.style.color='green';err.textContent='OTP भेज दिया गया है।'}catch(e){err.style.color='#c00';err.textContent='OTP नहीं भेजा गया: '+(e.code||e.message);if(recaptchaVerifier){recaptchaVerifier.clear();recaptchaVerifier=null}}}
 async function verifyOTP(){const err=document.getElementById('err'),code=document.getElementById('otp').value.trim();if(!confirmationResult||code.length!==6){err.style.color='#c00';err.textContent='6-digit OTP डालें।';return}try{const result=await confirmationResult.confirm(code);if(!ADMIN_PHONES.includes(result.user.phoneNumber)){await auth.signOut();throw new Error('Unauthorized')}err.textContent=''}catch(e){err.style.color='#c00';err.textContent='OTP गलत है या expire हो गया है।'}}
-function show(){document.getElementById('login').style.display='none';document.getElementById('app').style.display='block';if(!unsubscribeOrders)listenOrders()}
+function show(){document.getElementById('login').style.display='none';document.getElementById('app').style.display='block';if(!unsubscribeOrders)listenOrders();loadVisitorStats()}
 async function logout(){if(unsubscribeOrders){unsubscribeOrders();unsubscribeOrders=null}await auth.signOut();location.reload()}
 auth.onAuthStateChanged(async user=>{if(user&&ADMIN_PHONES.includes(user.phoneNumber)){show()}else{if(user)await auth.signOut();document.getElementById('app').style.display='none';document.getElementById('login').style.display='block';setupRecaptcha()}});
 function listenOrders(){unsubscribeOrders=db.collection('orders').orderBy('createdAt','desc').onSnapshot(s=>{liveOrders=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{document.getElementById('orders').innerHTML='<div class="empty">Firestore access error: '+escapeHtml(e.message)+'</div>'})}
 function render(){let all=liveOrders,filter=document.getElementById('filter').value,q=document.getElementById('search').value.toLowerCase();let orders=all.filter(o=>(!filter||o.status===filter)&&(!q||JSON.stringify(o).toLowerCase().includes(q)));document.getElementById('total').textContent=all.length;document.getElementById('new').textContent=all.filter(o=>o.status==='New'||o.status==='Confirmed').length;document.getElementById('advance').textContent='₹'+all.reduce((s,o)=>s+(+o.advance||0),0).toLocaleString('en-IN');document.getElementById('cod').textContent='₹'+all.reduce((s,o)=>s+(+o.cod||0),0).toLocaleString('en-IN');document.getElementById('orders').innerHTML=orders.map(o=>'<div class="order"><div class="row"><b>'+escapeHtml(o.id||'')+'</b><span class="badge">'+escapeHtml(o.status||'Confirmed')+'</span></div><p><b>'+escapeHtml(o.product||'')+'</b> — '+escapeHtml(o.size||'')+'</p><p>👤 '+escapeHtml(o.name||'')+' &nbsp; 📱 '+escapeHtml(o.phone||'')+'</p><p>📍 '+escapeHtml(o.address||'')+'</p><p class="money">Total ₹'+(+o.total||0)+' &nbsp; | &nbsp; Advance ₹'+(+o.advance||0)+' &nbsp; | &nbsp; COD ₹'+(+o.cod||0)+'</p><small>'+escapeHtml(o.paidAt||'')+'</small></div>').join('')||'<div class="empty">No orders found</div>'}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function clearDemo(){render()}
+async function loadVisitorStats(){
+ try{
+  const snap=await db.collection('siteAnalytics').get(),days={};let total=0;
+  snap.forEach(d=>{const x=d.data();if(d.id==='total')total=+x.visits||0;else days[d.id]=+x.visits||0});
+  const today=new Date();const key=n=>{const d=new Date(today);d.setDate(d.getDate()-n);return d.toISOString().slice(0,10)};
+  let v7=0,v30=0;for(let i=0;i<30;i++){const v=days[key(i)]||0;if(i<7)v7+=v;v30+=v}
+  document.getElementById('visToday').textContent=days[key(0)]||0;
+  document.getElementById('vis7').textContent=v7;
+  document.getElementById('vis30').textContent=v30;
+  document.getElementById('visTotal').textContent=total;
+ }catch(e){['visToday','vis7','vis30','visTotal'].forEach(id=>document.getElementById(id).textContent='—')}
+}
 </script></body></html>
