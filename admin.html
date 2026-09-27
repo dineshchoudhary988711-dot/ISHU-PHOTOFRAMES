@@ -5,7 +5,8 @@
 <title>Ishu Photo Frames - Admin Panel</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f5f7;color:#222}.top{background:#111;color:#fff;padding:18px}.top h1{margin:0;font-size:22px}.wrap{max-width:1100px;margin:auto;padding:16px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat,.panel{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px #0001}.stat b{display:block;font-size:25px;margin-top:5px}.toolbar{display:flex;gap:10px;margin:16px 0;flex-wrap:wrap}.toolbar input,.toolbar select{padding:11px;border:1px solid #ccc;border-radius:8px}.orders{display:grid;gap:12px}.order{background:#fff;border-radius:12px;padding:15px;box-shadow:0 2px 8px #0001}.row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.badge{padding:5px 9px;border-radius:20px;background:#eee;font-size:12px}.money{font-size:18px;font-weight:bold}.empty{text-align:center;padding:40px;color:#777}.login{max-width:360px;margin:80px auto;background:#fff;padding:25px;border-radius:14px;box-shadow:0 4px 20px #0002}.login input{width:100%;padding:12px;margin:8px 0;border:1px solid #ccc;border-radius:8px}.btn{padding:11px 15px;border:0;border-radius:8px;background:#111;color:#fff;font-weight:bold}.danger{background:#c62828}@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}}
-</style></head>
+</style><script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script></head>
 <body>
 <div id="login" class="login"><h2>ISHU PHOTO FRAMES</h2><p>Admin Login</p><input id="pin" type="password" placeholder="Admin PIN"><button class="btn" onclick="login()">Login</button><p id="err" style="color:#c00"></p></div>
 <div id="app" style="display:none">
@@ -16,12 +17,14 @@
 <div id="orders" class="orders"></div>
 </div></div>
 <script>
-const PIN='2468';
-const demo=[{id:'ISHU-DEMO-001',name:'Demo Customer',phone:'9876543210',product:'Single Photo Frame',size:'12×18 Inch',total:599,advance:249,cod:350,address:'Jaipur, Rajasthan',status:'Demo',date:'26 Sep 2026'}];
-function login(){if(document.getElementById('pin').value===PIN){sessionStorage.admin='1';show()}else document.getElementById('err').textContent='Wrong PIN';}
-function show(){document.getElementById('login').style.display='none';document.getElementById('app').style.display='block';render()}
+const firebaseConfig={apiKey:"AIzaSyDC0jnEYErbv6O6Ju7ujxJybPHwapCq5_0",authDomain:"ishu-photo-frames.firebaseapp.com",projectId:"ishu-photo-frames",storageBucket:"ishu-photo-frames.firebasestorage.app",messagingSenderId:"33113817139",appId:"1:33113817139:web:1c9849ec03659d70c0e346",measurementId:"G-478KNGZ168"};
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+const PIN='2468';let liveOrders=[];
+function login(){if(document.getElementById('pin').value===PIN){sessionStorage.admin='1';show()}else document.getElementById('err').textContent='Wrong PIN'}
+function show(){document.getElementById('login').style.display='none';document.getElementById('app').style.display='block';listenOrders()}
 if(sessionStorage.admin==='1')show();
-function getOrders(){return JSON.parse(localStorage.getItem('ishuOrders')||'[]')}
-function render(){let all=getOrders();let filter=document.getElementById('filter').value;let q=document.getElementById('search').value.toLowerCase();let orders=all.length?all:demo;orders=orders.filter(o=>(!filter||o.status===filter)&&(!q||JSON.stringify(o).toLowerCase().includes(q)));document.getElementById('total').textContent=all.length;document.getElementById('new').textContent=all.filter(o=>o.status==='New').length;document.getElementById('advance').textContent='₹'+all.reduce((s,o)=>s+(+o.advance||0),0).toLocaleString('en-IN');document.getElementById('cod').textContent='₹'+all.reduce((s,o)=>s+(+o.cod||0),0).toLocaleString('en-IN');document.getElementById('orders').innerHTML=orders.map(o=>`<div class="order"><div class="row"><b>${o.id}</b><span class="badge">${o.status}</span></div><p><b>${o.product}</b> — ${o.size}</p><p>👤 ${o.name} &nbsp; 📱 ${o.phone}</p><p>📍 ${o.address}</p><p class="money">Total ₹${o.total} &nbsp; | &nbsp; Advance ₹${o.advance} &nbsp; | &nbsp; COD ₹${o.cod}</p><small>${o.date||''}</small></div>`).join('')||'<div class="empty">No orders found</div>'}
-function clearDemo(){localStorage.removeItem('ishuOrders');render()}
+function listenOrders(){db.collection('orders').orderBy('createdAt','desc').onSnapshot(s=>{liveOrders=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{document.getElementById('orders').innerHTML='<div class="empty">Firestore access error: '+escapeHtml(e.message)+'</div>'})}
+function render(){let all=liveOrders,filter=document.getElementById('filter').value,q=document.getElementById('search').value.toLowerCase();let orders=all.filter(o=>(!filter||o.status===filter)&&(!q||JSON.stringify(o).toLowerCase().includes(q)));document.getElementById('total').textContent=all.length;document.getElementById('new').textContent=all.filter(o=>o.status==='New'||o.status==='Confirmed').length;document.getElementById('advance').textContent='₹'+all.reduce((s,o)=>s+(+o.advance||0),0).toLocaleString('en-IN');document.getElementById('cod').textContent='₹'+all.reduce((s,o)=>s+(+o.cod||0),0).toLocaleString('en-IN');document.getElementById('orders').innerHTML=orders.map(o=>'<div class="order"><div class="row"><b>'+escapeHtml(o.id||'')+'</b><span class="badge">'+escapeHtml(o.status||'Confirmed')+'</span></div><p><b>'+escapeHtml(o.product||'')+'</b> — '+escapeHtml(o.size||'')+'</p><p>👤 '+escapeHtml(o.name||'')+' &nbsp; 📱 '+escapeHtml(o.phone||'')+'</p><p>📍 '+escapeHtml(o.address||'')+'</p><p class="money">Total ₹'+(+o.total||0)+' &nbsp; | &nbsp; Advance ₹'+(+o.advance||0)+' &nbsp; | &nbsp; COD ₹'+(+o.cod||0)+'</p><small>'+escapeHtml(o.paidAt||'')+'</small></div>').join('')||'<div class="empty">No orders found</div>'}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+function clearDemo(){render()}
 </script></body></html>
