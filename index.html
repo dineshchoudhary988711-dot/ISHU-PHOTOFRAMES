@@ -304,7 +304,7 @@ function showPaidOrderSuccess(o){
  const successBox=document.getElementById('orderSuccessBox');if(!successBox||!o)return;
  const amount=Number(o.advance||0),remaining=Number(o.cod||0);
  document.getElementById('orderSuccessDetails').innerHTML='<b>Your Order Confirmed ✅</b><br><b>Order ID:</b> '+escapeHtml(o.id||'')+'<br><b>Payment ID:</b> '+escapeHtml(o.paymentId||'')+'<br><b>Paid:</b> ₹'+amount.toLocaleString('en-IN')+'<br><b>Remaining COD:</b> ₹'+remaining.toLocaleString('en-IN');
- const btn=document.getElementById('successWhatsappBtn');btn.textContent='📷 Open WhatsApp';const m=o.whatsappMessage||('✅ ISHU PHOTO FRAMES\\nOrder Confirmed\\nOrder ID: '+(o.id||'')+'\\nProduct: '+(o.product||'')+'\\nName: '+(o.name||'')+'\\nMobile: '+(o.phone||''));const wa='https://wa.me/919468502183?text='+encodeURIComponent(m);btn.onclick=function(){window.location.href=wa};
+ const btn=document.getElementById('successWhatsappBtn');btn.textContent='📷 Open WhatsApp';const m=o.whatsappMessage||('✅ ISHU PHOTO FRAMES\\nOrder Confirmed\\nOrder ID: '+(o.id||'')+'\\nProduct: '+(o.product||'')+'\\nName: '+(o.name||'')+'\\nMobile: '+(o.phone||''));const wa='whatsapp://send?phone=919468502183&text='+encodeURIComponent(m);btn.onclick=function(){window.location.href=wa};
  successBox.style.display='flex';
  // After verified payment, automatically continue to WhatsApp. The button remains as a fallback if the browser blocks/interrupts navigation.
  setTimeout(function(){try{window.location.href=wa}catch(e){}},1200);
