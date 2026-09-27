@@ -308,7 +308,7 @@ function showPaidOrderSuccess(o){
  const btn=document.getElementById('successWhatsappBtn');btn.textContent='📷 Open WhatsApp';const m=o.whatsappMessage||('✅ ISHU PHOTO FRAMES\\nOrder Confirmed\\nOrder ID: '+(o.id||'')+'\\nProduct: '+(o.product||'')+'\\nName: '+(o.name||'')+'\\nMobile: '+(o.phone||''));const wa='whatsapp://send?phone=919468502183&text='+encodeURIComponent(m);btn.onclick=function(){window.location.href=wa};
  successBox.style.display='flex';
  // After verified payment, automatically continue to WhatsApp. The button remains as a fallback if the browser blocks/interrupts navigation.
- setTimeout(function(){try{window.location.href=wa}catch(e){}},1200);
+ setTimeout(function(){try{window.location.assign(wa)}catch(e){window.location.href=wa}},900);
 }
 function restorePaidOrderSuccess(){}
 let editingAddressIndex=-1;
@@ -323,8 +323,24 @@ function renderSavedAddresses(){let arr=getAddresses(),sel=parseInt(localStorage
 function saveAddress(){const a={name:document.getElementById('addrName').value.trim(),phone:document.getElementById('addrPhone').value.replace(/\D/g,''),full:document.getElementById('addrFull').value.trim(),city:document.getElementById('addrCity').value.trim(),state:document.getElementById('addrState').value.trim(),pin:document.getElementById('addrPin').value.replace(/\D/g,'')};if(!a.name||a.phone.length<10||!a.full||!a.city||!a.state||a.pin.length!==6){document.getElementById('addrMsg').innerHTML='<span style="color:#c62828">Please सभी details सही भरें।</span>';return}let arr=getAddresses();if(editingAddressIndex>=0)arr[editingAddressIndex]=a;else{if(arr.length>=5){document.getElementById('addrMsg').innerHTML='<span style="color:#c62828">Maximum 5 addresses save कर सकते हैं।</span>';return}arr.push(a);editingAddressIndex=arr.length-1}localStorage.setItem('ishuAddresses',JSON.stringify(arr));localStorage.setItem('ishuSelectedAddress',editingAddressIndex);document.getElementById('addrMsg').innerHTML='<span style="color:#16843c">✓ Address saved</span>';renderSavedAddresses();showSavedAddress();clearAddressForm()}
 function showSavedAddress(){let arr=getAddresses(),sel=parseInt(localStorage.getItem('ishuSelectedAddress')||'0'),a=arr[sel],e=document.getElementById('savedAddress');if(e)e.innerHTML=a?'<b style="color:#16843c">✓ '+a.name+'</b> · '+a.city+', '+a.state+' - '+a.pin:'Add & verify your delivery address'}
 setTimeout(showSavedAddress,0);
-function openMyOrder(){const box=document.getElementById('myOrderModal'),out=document.getElementById('myOrderContent');let o=null;try{o=JSON.parse(localStorage.getItem('ishuLastPaidOrder')||'null')}catch(e){}if(!o){out.innerHTML='<div style="padding:18px;background:#f7f7f7;border-radius:10px;text-align:center"><b>No order found on this device.</b><br><span style="font-size:13px;color:#666">Payment complete होने के बाद आपका latest order यहाँ दिखाई देगा।</span></div>'}else{const paid=Number(o.advance||0),cod=Number(o.cod||0);let products=o.items&&o.items.length?o.items.map(x=>'<div style="padding:8px 0;border-bottom:1px solid #eee"><b>'+escapeHtml(x.title||'Photo Frame')+'</b><br><span>'+escapeHtml(x.size||'')+' · Qty '+(x.qty||1)+'</span></div>').join(''):'<div style="padding:8px 0"><b>'+escapeHtml(o.product||'Photo Frame')+'</b><br><span>'+escapeHtml(o.size||'')+'</span></div>';out.innerHTML='<div style="padding:14px;border:1px solid #ddd;border-radius:12px">'+products+'<hr><b>Status:</b> '+escapeHtml(o.status||'Confirmed')+' ✅<br><b>Order ID:</b> '+escapeHtml(o.id||'')+'<br><b>Paid:</b> ₹'+paid.toLocaleString('en-IN')+'<br><b>Remaining COD:</b> ₹'+cod.toLocaleString('en-IN')+'<br><b>Name:</b> '+escapeHtml(o.name||'')+'<br><b>Mobile:</b> '+escapeHtml(o.phone||'')+'</div>'}box.style.display='flex'}function closeMyOrder(){document.getElementById('myOrderModal').style.display='none'}function openTrack(){openMyOrder()}function closeTrack(){closeMyOrder()}function trackOrder(){openMyOrder()}
-
+function openMyOrder(){
+ const box=document.getElementById('myOrderModal'),out=document.getElementById('myOrderContent');
+ if(!box||!out){alert('My Order अभी load नहीं हुआ। Page refresh करके फिर try करें।');return}
+ let o=null;try{o=JSON.parse(localStorage.getItem('ishuLastPaidOrder')||'null')}catch(e){}
+ if(!o){out.innerHTML='<div style="padding:18px;background:#f7f7f7;border-radius:10px;text-align:center"><b>No order found on this device.</b><br><span style="font-size:13px;color:#666">Payment complete होने के बाद आपका latest order यहाँ दिखाई देगा।</span></div>'}
+ else{
+  const paid=Number(o.advance||0),cod=Number(o.cod||0);
+  let productHtml='';
+  if(o.items&&o.items.length){productHtml=o.items.map(function(x){return '<div style="padding:8px 0;border-bottom:1px solid #eee"><b>'+escapeHtml(x.title||'Photo Frame')+'</b><br><span>'+escapeHtml(x.size||'')+' · Qty '+(x.qty||1)+'</span></div>'}).join('')}
+  else{productHtml='<div style="padding:8px 0"><b>'+escapeHtml(o.product||'Photo Frame')+'</b><br><span>'+escapeHtml(o.size||'')+'</span></div>'}
+  out.innerHTML='<div style="padding:14px;border:1px solid #ddd;border-radius:12px">'+productHtml+'<hr><b>Status:</b> '+escapeHtml(o.status||'Confirmed')+' ✅<br><b>Order ID:</b> '+escapeHtml(o.id||'')+'<br><b>Paid:</b> ₹'+paid.toLocaleString('en-IN')+'<br><b>Remaining COD:</b> ₹'+cod.toLocaleString('en-IN')+'<br><b>Name:</b> '+escapeHtml(o.name||'')+'<br><b>Mobile:</b> '+escapeHtml(o.phone||'')+'</div>'
+ }
+ box.style.display='flex';
+}
+function closeMyOrder(){const b=document.getElementById('myOrderModal');if(b)b.style.display='none'}
+function openTrack(){openMyOrder()}
+function closeTrack(){closeMyOrder()}
+function trackOrder(){openMyOrder()}
 
 
 
