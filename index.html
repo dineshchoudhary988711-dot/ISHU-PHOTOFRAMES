@@ -208,9 +208,12 @@ async function payNow(){
    handler:async function(resp){
     const vr=await fetch('/api/verify-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(resp)});
     const verified=await vr.json();if(!vr.ok||!verified.verified){alert('Payment verification failed. कृपया WhatsApp पर contact करें।');return}
-    const msg='ISHU PHOTO FRAMES PAID ORDER\\n\\nProduct: '+p.title+'\\nSize: '+p.size+'\\nTotal Price: '+p.price+'\\nAdvance Paid: ₹'+amount+'\\nRemaining COD: ₹'+(total-amount)+'\\nPayment ID: '+resp.razorpay_payment_id+'\\nName: '+name+'\\nMobile: '+phone+'\\nAddress: '+address+'\\nPincode: '+pincode+'\\n\\nPayment verified successfully. Customer photos WhatsApp पर attach करें।';
-    alert('Payment successful और verified ✅ अब WhatsApp पर order details भेजें।');
-    window.open('https://wa.me/919468502183?text='+encodeURIComponent(msg),'_blank');
+    const paymentId=resp.razorpay_payment_id;
+    const orderId=resp.razorpay_order_id;
+    const msg='✅ ISHU PHOTO FRAMES - PAYMENT SUCCESSFUL\\n\\nPayment Status: VERIFIED / PAID ✅\\nPayment ID: '+paymentId+'\\nRazorpay Order ID: '+orderId+'\\n\\nProduct: '+p.title+'\\nSize: '+p.size+'\\nTotal Price: '+p.price+'\\nAdvance Paid: ₹'+amount+'\\nRemaining COD: ₹'+(total-amount)+'\\n\\nCustomer: '+name+'\\nMobile: '+phone+'\\nAddress: '+address+'\\nPincode: '+pincode+'\\n\\nयह payment website पर Razorpay signature verification के बाद confirmed है. Customer photos इसी WhatsApp chat में attach करें।';
+    try{localStorage.setItem('ishuLastPaidOrder',JSON.stringify({paymentId,orderId,product:p.title,size:p.size,total,amount,remaining:total-amount,name,phone,address,pincode,paidAt:new Date().toISOString()}))}catch(e){}
+    alert('✅ PAYMENT SUCCESSFUL & VERIFIED\\n\\nPayment ID: '+paymentId+'\\nAdvance Paid: ₹'+amount+'\\nRemaining COD: ₹'+(total-amount)+'\\n\\nOK दबाने के बाद WhatsApp खुलेगा। वहाँ यही VERIFIED payment details दिखाई देंगी।');
+    window.location.href='https://wa.me/919468502183?text='+encodeURIComponent(msg);
    },theme:{color:'#d7192f'}};
   new Razorpay(options).open();
  }catch(e){alert('Payment शुरू नहीं हो पाया: '+e.message)}
