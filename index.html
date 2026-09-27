@@ -112,6 +112,10 @@ window.addEventListener('load',function(){
   try{
     if(window.fbq){
       fbq('trackCustom','IshuSiteVisit',{page:location.pathname,domain:location.hostname});
+      const q=new URLSearchParams(location.search);
+      if(q.get('meta_purchase_test')==='1'){
+        fbq('track','Purchase',{value:1.00,currency:'INR',content_name:'Meta Purchase Test',content_type:'product'});
+      }
     }
   }catch(e){}
 });
