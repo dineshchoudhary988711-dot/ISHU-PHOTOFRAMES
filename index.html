@@ -319,5 +319,22 @@ window.addEventListener('popstate',function(){
  }
  homeBackGuard++;
 });
+function trackSiteVisit(){
+ try{
+  const day=new Date().toISOString().slice(0,10),key='ishuVisit_'+day;
+  if(sessionStorage.getItem(key))return;
+  sessionStorage.setItem(key,'1');
+  const ref=document.referrer||'Direct';
+  db.collection('siteAnalytics').doc(day).set({
+   date:day,visits:firebase.firestore.FieldValue.increment(1),
+   lastVisit:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true}).catch(()=>{});
+  db.collection('siteAnalytics').doc('total').set({
+   visits:firebase.firestore.FieldValue.increment(1),
+   lastVisit:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true}).catch(()=>{});
+ }catch(e){}
+}
+trackSiteVisit();
 restorePaidOrderSuccess();
 </script></body></html>
