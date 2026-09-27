@@ -19,7 +19,7 @@
 <script>
 const firebaseConfig={apiKey:"AIzaSyDC0jnEYErbv6O6Ju7ujxJybPHwapCq5_0",authDomain:"ishu-photo-frames.firebaseapp.com",projectId:"ishu-photo-frames",storageBucket:"ishu-photo-frames.firebasestorage.app",messagingSenderId:"33113817139",appId:"1:33113817139:web:1c9849ec03659d70c0e346",measurementId:"G-478KNGZ168"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore(),auth=firebase.auth();
-const ADMIN_PHONES=['+919468502183'];let liveOrders=[],confirmationResult=null,recaptchaVerifier=null,unsubscribeOrders=null;
+const ADMIN_PHONES=['+918890439054'];let liveOrders=[],confirmationResult=null,recaptchaVerifier=null,unsubscribeOrders=null;
 function normalizePhone(v){let d=v.replace(/\D/g,'');if(d.length===10)return '+91'+d;if(d.length===12&&d.startsWith('91'))return '+'+d;return '+'+d}
 function setupRecaptcha(){if(recaptchaVerifier)return;recaptchaVerifier=new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'normal'});recaptchaVerifier.render()}
 async function sendOTP(){const err=document.getElementById('err'),phone=normalizePhone(document.getElementById('phone').value);err.textContent='';if(!ADMIN_PHONES.includes(phone)){err.textContent='यह mobile number admin के लिए authorized नहीं है।';return}try{setupRecaptcha();confirmationResult=await auth.signInWithPhoneNumber(phone,recaptchaVerifier);document.getElementById('otpBox').style.display='block';document.getElementById('sendBtn').textContent='Resend OTP';err.style.color='green';err.textContent='OTP भेज दिया गया है।'}catch(e){err.style.color='#c00';err.textContent='OTP नहीं भेजा गया: '+(e.code||e.message);if(recaptchaVerifier){recaptchaVerifier.clear();recaptchaVerifier=null}}}
