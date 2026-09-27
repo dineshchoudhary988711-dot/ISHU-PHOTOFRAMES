@@ -299,11 +299,14 @@ function openTrack(){document.getElementById('trackModal').style.display='flex'}
 
 
 function buyNow(){const p=products.find(x=>x.title===document.getElementById('vtitle').textContent);const name=document.getElementById('customerName').value.trim();const phone=document.getElementById('customerPhone').value.trim();const address=document.getElementById('customerAddress').value.trim();const district=document.getElementById('customerDistrict').value.trim();const state=document.getElementById('customerState').value.trim();const pincode=document.getElementById('customerPincode').value.trim();if(!name||!phone||!address||!district||!state||!pincode){alert('Please Name, Mobile Number, Full Address, District/City, State और Pincode भरें।');return}const msg='ISHU PHOTO FRAMES ORDER\n\nProduct: '+p.title+'\nSize: '+p.size+'\nPrice: '+p.price+'\nName: '+name+'\nMobile: '+phone+'\nAddress: '+address+'\nDistrict / City: '+district+'\nState: '+state+'\nPincode: '+pincode+'\n\nमैंने अपनी photos upload की हैं। WhatsApp पर photos attach कर रहा/रही हूँ।';const choice=confirm('Order भेजने के लिए OK दबाएँ। पहले WhatsApp नंबर पर भेजें?\nCancel दबाने पर दूसरे WhatsApp नंबर पर भेजा जाएगा।');const number=choice?'919468502183':'918875618426';window.open('https://wa.me/'+number+'?text='+encodeURIComponent(msg),'_blank')}
+let homeBackGuard=0;
+if(!history.state||!history.state.ishuHomeGuard){history.replaceState({ishuHomeGuard:true},'',location.href);history.pushState({ishuHomeGuard:true},'',location.href);history.pushState({ishuHomeGuard:true},'',location.href)}
 window.addEventListener('popstate',function(){
  const viewer=document.getElementById('viewer'),cart=document.getElementById('cartPanel'),success=document.getElementById('orderSuccessBox');
  if(success&&success.style.display==='flex'){hidePaidOrderSuccess();return}
  if(viewer&&viewer.style.display==='block'){closeViewer(true);return}
  if(cart&&cart.style.display==='block'){closeCart(true);return}
+ homeBackGuard++;
 });
 restorePaidOrderSuccess();
 </script></body></html>
