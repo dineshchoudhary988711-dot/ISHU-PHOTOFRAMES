@@ -19,26 +19,22 @@
 <script>
 const firebaseConfig={apiKey:"AIzaSyDC0jnEYErbv6O6Ju7ujxJybPHwapCq5_0",authDomain:"ishu-photo-frames.firebaseapp.com",projectId:"ishu-photo-frames",storageBucket:"ishu-photo-frames.firebasestorage.app",messagingSenderId:"33113817139",appId:"1:33113817139:web:1c9849ec03659d70c0e346",measurementId:"G-478KNGZ168"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore(),auth=firebase.auth();
-let liveOrders=[],unsubscribeOrders=null;const ADMIN_PIN=['2','4','6','8'].join('');
+let liveOrders=[],unsubscribeOrders=null;const ADMIN_PIN=['2','4','6','8'].join('');let unsubscribeAnalytics=null;
 function pinLogin(){const pin=document.getElementById('adminPin').value.trim(),err=document.getElementById('err');if(pin===ADMIN_PIN){sessionStorage.setItem('ishuAdminPin','ok');show()}else err.textContent='Admin code गलत है।'}
-function show(){document.getElementById('login').style.display='none';document.getElementById('app').style.display='block';if(!unsubscribeOrders)listenOrders();loadVisitorStats()}
-function logout(){if(unsubscribeOrders){unsubscribeOrders();unsubscribeOrders=null}sessionStorage.removeItem('ishuAdminPin');location.reload()}
+function show(){document.getElementById('login').style.display='none';document.getElementById('app').style.display='block';if(!unsubscribeOrders)listenOrders();if(!unsubscribeAnalytics)listenVisitorStats()}
+function logout(){if(unsubscribeOrders){unsubscribeOrders();unsubscribeOrders=null}if(unsubscribeAnalytics){unsubscribeAnalytics();unsubscribeAnalytics=null}sessionStorage.removeItem('ishuAdminPin');location.reload()}
 if(sessionStorage.getItem('ishuAdminPin')==='ok')setTimeout(show,0);
 function listenOrders(){unsubscribeOrders=db.collection('orders').orderBy('createdAt','desc').onSnapshot(s=>{liveOrders=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{document.getElementById('orders').innerHTML='<div class="empty">Firestore access error: '+escapeHtml(e.message)+'</div>'})}
 function orderDay(o){const v=o.paidAt||(o.createdAt&&o.createdAt.toDate?o.createdAt.toDate().toISOString():'');return String(v||'').slice(0,10)}
 function render(){let all=liveOrders,filter=document.getElementById('filter').value,q=document.getElementById('search').value.toLowerCase();let orders=all.filter(o=>(!filter||o.status===filter)&&(!q||JSON.stringify(o).toLowerCase().includes(q)));const today=new Date().toISOString().slice(0,10),todays=all.filter(o=>orderDay(o)===today);document.getElementById('total').textContent=all.length;document.getElementById('todayOrders').textContent=todays.length;document.getElementById('new').textContent=all.filter(o=>o.status==='New'||o.status==='Confirmed').length;document.getElementById('advance').textContent='₹'+all.reduce((s,o)=>s+(+o.advance||0),0).toLocaleString('en-IN');document.getElementById('cod').textContent='₹'+all.reduce((s,o)=>s+(+o.cod||0),0).toLocaleString('en-IN');document.getElementById('todayPayment').textContent='₹'+todays.reduce((s,o)=>s+(+o.advance||0),0).toLocaleString('en-IN');document.getElementById('todaySales').textContent='₹'+todays.reduce((s,o)=>s+(+o.total||0),0).toLocaleString('en-IN');document.getElementById('prepaidCount').textContent=all.filter(o=>o.paymentMode==='prepaid').length;document.getElementById('codCount').textContent=all.filter(o=>o.paymentMode==='cod').length;document.getElementById('deliveredCount').textContent=all.filter(o=>o.status==='Delivered').length;document.getElementById('cancelledCount').textContent=all.filter(o=>o.status==='Cancelled').length;document.getElementById('orders').innerHTML=orders.map(o=>{const items=Array.isArray(o.items)?'<div style="margin:8px 0;padding:8px;background:#fafafa;border-radius:8px">'+o.items.map((x,i)=>'<div>🖼️ '+(i+1)+'. <b>'+escapeHtml(x.title||'')+'</b> · '+escapeHtml(x.size||'')+' · Qty '+(x.qty||1)+'</div>').join('')+'</div>':'';return '<div class="order '+((o.status==='New'||o.status==='Confirmed')?'newOrder':'')+'"><div class="row"><b>Order: '+escapeHtml(o.id||'')+'</b><span class="badge">'+escapeHtml(o.status||'Confirmed')+'</span></div><p><b>'+escapeHtml(o.product||'')+'</b> — '+escapeHtml(o.size||'')+'</p>'+items+'<p>👤 '+escapeHtml(o.name||'')+' &nbsp; 📱 '+escapeHtml(o.phone||'')+'</p><p>📍 '+escapeHtml(o.address||'')+'</p><p class="money">Total ₹'+(+o.total||0).toLocaleString('en-IN')+' &nbsp; | &nbsp; <span class="paid">Paid ₹'+(+o.advance||0).toLocaleString('en-IN')+'</span> &nbsp; | &nbsp; <span class="pending">COD ₹'+(+o.cod||0).toLocaleString('en-IN')+'</span></p><p>💳 '+(o.paymentMode==='prepaid'?'Prepaid':'COD')+(o.paymentId?' &nbsp; | &nbsp; Payment ID: '+escapeHtml(o.paymentId):'')+'</p><small>'+escapeHtml(o.paidAt||'')+'</small></div>'}).join('')||'<div class="empty">No orders found</div>'}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function clearDemo(){render()}
-async function loadVisitorStats(){
- try{
-  const snap=await db.collection('siteAnalytics').get(),days={};let total=0;
-  snap.forEach(d=>{const x=d.data();if(d.id==='total')total=+x.visits||0;else days[d.id]=+x.visits||0});
-  const today=new Date();const key=n=>{const d=new Date(today);d.setDate(d.getDate()-n);return d.toISOString().slice(0,10)};
+function listenVisitorStats(){
+ unsubscribeAnalytics=db.collection('siteAnalytics').onSnapshot(snap=>{
+  const days={};let total=0;snap.forEach(d=>{const x=d.data();if(d.id==='total')total=+x.visits||0;else days[d.id]=+x.visits||0});
+  const today=new Date(),key=n=>{const d=new Date(today);d.setDate(d.getDate()-n);return d.toISOString().slice(0,10)};
   let v7=0,v30=0;for(let i=0;i<30;i++){const v=days[key(i)]||0;if(i<7)v7+=v;v30+=v}
-  document.getElementById('visToday').textContent=days[key(0)]||0;
-  document.getElementById('vis7').textContent=v7;
-  document.getElementById('vis30').textContent=v30;
-  document.getElementById('visTotal').textContent=total;
- }catch(e){['visToday','vis7','vis30','visTotal'].forEach(id=>document.getElementById(id).textContent='—')}
+  document.getElementById('visToday').textContent=days[key(0)]||0;document.getElementById('vis7').textContent=v7;document.getElementById('vis30').textContent=v30;document.getElementById('visTotal').textContent=total;
+ },()=>{['visToday','vis7','vis30','visTotal'].forEach(id=>document.getElementById(id).textContent='—')});
 }
 </script></body></html>
